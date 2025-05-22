@@ -7,6 +7,7 @@ import {
   AzureDevOpsPermissionError,
 } from '../shared/errors';
 import { defaultOrg, defaultProject } from '../utils/environment';
+import { BoardClient } from './board-client';
 
 interface ClientOptions {
   organizationId?: string;
@@ -530,6 +531,20 @@ export async function getWikiClient(
   const { organizationId } = options;
 
   return new WikiClient(organizationId || defaultOrg);
+}
+
+/**
+ * Get the authorization header for Azure DevOps API requests
+ * @returns The authorization header
+ */
+/**
+ * Creates a Board client for Azure DevOps operations
+ * @param options - Options for creating the client
+ * @returns A Board client instance
+ */
+export function getBoardClient(options: ClientOptions = {}): BoardClient {
+  const { organizationId } = options;
+  return new BoardClient(organizationId || defaultOrg);
 }
 
 /**
