@@ -1,21 +1,24 @@
-import { BoardClient } from '../../../clients/board-client';
+import { WebApi } from 'azure-devops-node-api';
 import { MoveWorkItemArgs } from './schema';
-import { AzureDevOpsError } from '../../../shared/errors';
+import {
+  AzureDevOpsError,
+  AzureDevOpsResourceNotFoundError,
+} from '../../../shared/errors';
+import axios from 'axios';
+import { getAuthorizationHeader } from '../../../clients/azure-devops';
 
 /**
  * Moves a work item to a specified column and/or row on a board.
  *
- * @param client The BoardClient instance.
+ * @param connection The Azure DevOps WebApi connection.
  * @param args The arguments for moving the work item.
  * @returns A promise that resolves to the result of the move operation (typically the updated work item).
  */
 export async function moveWorkItem(
-  client: BoardClient,
+  connection: WebApi,
   args: MoveWorkItemArgs,
 ): Promise<any> {
-  // The BoardClient.moveWorkItemToColumnRow returns Promise<any>
   try {
-    // The 'organization' from args is used by the caller to initialize the client.
     // Construct the updates object based on provided columnId and rowId
     const updates: Record<string, any> = {};
     if (args.columnId) {
@@ -34,16 +37,48 @@ export async function moveWorkItem(
       );
     }
 
-    const result = await client.moveWorkItemToColumnRow(
-      args.workItemId,
-      args.project,
-      updates,
-    );
-    return result;
+    // Get the organization URL from the connection
+    const baseUrl = connection.serverUrl;
+    if (!baseUrl) {
+      throw new AzureDevOpsError('Server URL not available in connection');
+    }
+
+    // Construct the API URL for updating work item
+    const url = `${baseUrl}/${args.project}/_apis/wit/workitems/${args.workItemId}?api-version=7.1`;
+
+    // Format the updates as a JSON patch document
+    const patchOps = Object.entries(updates).map(([field, value]) => ({
+      op: 'add',
+      path: `/fields/${field}`,
+      value,
+    }));
+
+    // Make the REST API call using axios
+    const response = await axios.patch(url, patchOps, {
+      headers: {
+        'Content-Type': 'application/json-patch+json',
+        Authorization: await getAuthorizationHeader(),
+      },
+    });
+
+    return response.data;
   } catch (error: unknown) {
     if (error instanceof AzureDevOpsError) {
       throw error;
     }
+
+    // Handle specific error cases
+    if (error instanceof Error) {
+      if (
+        error.message.includes('not found') ||
+        error.message.includes('does not exist')
+      ) {
+        throw new AzureDevOpsResourceNotFoundError(
+          `Work item not found: ${args.workItemId} in project ${args.project}`,
+        );
+      }
+    }
+
     const message = error instanceof Error ? error.message : String(error);
     throw new AzureDevOpsError(`Failed to move work item: ${message}`);
   }

@@ -79,6 +79,12 @@ import {
   handleBoardsRequest,
 } from './features/boards';
 
+import {
+  teamsTools,
+  isTeamsRequest,
+  handleTeamsRequest,
+} from './features/teams';
+
 // Create a safe console logging function that won't interfere with MCP protocol
 function safeLog(message: string) {
   process.stderr.write(`${message}\n`);
@@ -127,6 +133,7 @@ export function createAzureDevOpsServer(config: AzureDevOpsConfig): Server {
       ...pipelinesTools,
       ...wikisTools,
       ...boardTools,
+      ...teamsTools,
     ];
     return { tools };
   });
@@ -339,6 +346,10 @@ export function createAzureDevOpsServer(config: AzureDevOpsConfig): Server {
 
       if (isBoardsRequest(request)) {
         return await handleBoardsRequest(connection, request);
+      }
+
+      if (isTeamsRequest(request)) {
+        return await handleTeamsRequest(connection, request);
       }
 
       // If we get here, the tool is not recognized by any feature handler

@@ -1,35 +1,65 @@
-import { BoardClient } from '../../../clients/board-client';
+import { WebApi } from 'azure-devops-node-api';
 import { BoardRow } from '../types';
 import { CreateBoardRowArgs } from './schema';
-import { AzureDevOpsError } from '../../../shared/errors';
+import {
+  AzureDevOpsError,
+  AzureDevOpsResourceNotFoundError,
+} from '../../../shared/errors';
+import axios from 'axios';
+import { getAuthorizationHeader } from '../../../clients/azure-devops';
 
 /**
  * Creates a new row (swimlane) on a board.
  *
- * @param client The BoardClient instance.
+ * @param connection The Azure DevOps WebApi connection.
  * @param args The arguments for creating the board row.
  * @returns The created board row.
  */
 export async function createBoardRow(
-  client: BoardClient,
+  connection: WebApi,
   args: CreateBoardRowArgs,
 ): Promise<BoardRow> {
   try {
-    // The 'organization' from args is used by the caller to initialize the client,
-    // not passed directly to this specific client method.
-    const result = await client.createBoardRow(
-      args.project,
-      args.team,
-      args.boardId,
-      args.rowName,
+    // Get the organization URL from the connection
+    const baseUrl = connection.serverUrl;
+    if (!baseUrl) {
+      throw new AzureDevOpsError('Server URL not available in connection');
+    }
+
+    // Construct the API URL for creating a board row
+    const url = `${baseUrl}/${args.project}/${args.team}/_apis/work/boards/${args.boardId}/rows?api-version=7.1`;
+
+    // Make the REST API call using axios
+    const response = await axios.post(
+      url,
+      { name: args.rowName },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: await getAuthorizationHeader(),
+        },
+      },
     );
-    return result;
+
+    return response.data as BoardRow;
   } catch (error: unknown) {
     if (error instanceof AzureDevOpsError) {
       throw error;
     }
+
+    // Handle specific error cases
+    if (error instanceof Error) {
+      if (
+        error.message.includes('not found') ||
+        error.message.includes('does not exist')
+      ) {
+        throw new AzureDevOpsResourceNotFoundError(
+          `Board not found: ${args.boardId} in project/team ${args.project}/${args.team}`,
+        );
+      }
+    }
+
     const message = error instanceof Error ? error.message : String(error);
-    // TODO: Consider more specific error types like AzureDevOpsResourceNotFoundError if applicable
     throw new AzureDevOpsError(`Failed to create board row: ${message}`);
   }
 }

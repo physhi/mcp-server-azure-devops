@@ -6,6 +6,7 @@ import {
   BoardRow,
   BoardWorkItemsResult,
 } from '@/features/boards/types';
+import { defaultProject, defaultOrg } from '../../utils/environment';
 
 // Common schemas
 export const fieldReferenceSchema = z.object({
@@ -61,26 +62,46 @@ export const boardWorkItemsResultSchema: z.ZodType<BoardWorkItemsResult> =
 
 // Request parameter schemas
 export const boardListParamsSchema = z.object({
-  organization: z.string(),
-  project: z.string(),
-  team: z.string(),
+  organization: z
+    .string()
+    .describe(`The ID or name of the organization (Default: ${defaultOrg})`),
+  project: z
+    .string()
+    .describe(`The ID or name of the project (Default: ${defaultProject})`),
+  team: z.string().describe('The ID or name of the team'),
 });
 
 export const boardParamsSchema = boardListParamsSchema.extend({
-  boardId: z.string(),
+  boardId: z.string().describe('The ID of the board'),
 });
 
 export const boardWorkItemsParamsSchema = boardParamsSchema.extend({
-  iterationId: z.string().optional(),
-  iterationPath: z.string().optional(),
+  iterationId: z
+    .string()
+    .optional()
+    .describe('Optional. The ID of the iteration to filter work items'),
+  iterationPath: z
+    .string()
+    .optional()
+    .describe('Optional. The path of the iteration to filter work items'),
 });
 
 export const moveWorkItemParamsSchema = z.object({
-  organization: z.string(),
-  project: z.string(),
-  workItemId: z.number(),
-  columnId: z.string().optional(),
-  rowId: z.string().optional(),
+  organization: z
+    .string()
+    .describe(`The ID or name of the organization (Default: ${defaultOrg})`),
+  project: z
+    .string()
+    .describe(`The ID or name of the project (Default: ${defaultProject})`),
+  workItemId: z.number().describe('The ID of the work item to move'),
+  columnId: z
+    .string()
+    .optional()
+    .describe('Optional. The ID of the column to move the work item to'),
+  rowId: z
+    .string()
+    .optional()
+    .describe('Optional. The ID of the row to move the work item to'),
 });
 
 // Response schemas

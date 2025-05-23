@@ -1,27 +1,53 @@
-import { BoardClient } from '../../../clients/board-client';
+import { WebApi } from 'azure-devops-node-api';
+import { TeamContext } from 'azure-devops-node-api/interfaces/CoreInterfaces';
 import { Board } from '../types';
 import { GetBoardArgs } from './schema';
-import { AzureDevOpsError } from '../../../shared/errors';
+import {
+  AzureDevOpsError,
+  AzureDevOpsResourceNotFoundError,
+} from '../../../shared/errors';
 
 /**
  * Gets a specific board by its ID.
  *
- * @param client The BoardClient instance.
+ * @param connection The Azure DevOps WebApi connection.
  * @param args The arguments for getting the board.
  * @returns A promise that resolves to the board details.
  */
 export async function getBoard(
-  client: BoardClient,
+  connection: WebApi,
   args: GetBoardArgs,
 ): Promise<Board> {
   try {
-    // The 'organization' from args is used by the caller to initialize the client.
-    const board = await client.getBoard(args.project, args.team, args.boardId);
-    return board;
+    // Use the Work API to get board details
+    const workApi = await connection.getWorkApi();
+
+    // Create a team context for the API call
+    const teamContext: TeamContext = {
+      project: args.project,
+      team: args.team,
+    };
+
+    // Get the specific board by ID
+    const board = await workApi.getBoard(teamContext, args.boardId);
+    return board as unknown as Board;
   } catch (error: unknown) {
     if (error instanceof AzureDevOpsError) {
       throw error;
     }
+
+    // Handle specific error cases
+    if (error instanceof Error) {
+      if (
+        error.message.includes('not found') ||
+        error.message.includes('does not exist')
+      ) {
+        throw new AzureDevOpsResourceNotFoundError(
+          `Board not found: ${args.boardId} in project/team ${args.project}/${args.team}`,
+        );
+      }
+    }
+
     const message = error instanceof Error ? error.message : String(error);
     throw new AzureDevOpsError(`Failed to get board: ${message}`);
   }

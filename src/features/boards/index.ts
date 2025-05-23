@@ -5,6 +5,7 @@ import {
   RequestIdentifier,
   RequestHandler,
 } from '../../shared/types/request-handler';
+import { defaultOrg, defaultProject } from '../../utils/environment';
 
 // Import new modular features
 import { CreateBoardRowSchema, createBoardRow } from './create-board-row';
@@ -48,65 +49,65 @@ export const isBoardsRequest: RequestIdentifier = (
  * Handles boards feature requests
  */
 export const handleBoardsRequest: RequestHandler = async (
-  _connection: WebApi, // Not using connection directly, using organization instead
+  connection: WebApi,
   request: CallToolRequest,
 ): Promise<CallToolResponse> => {
   // Extract tool name and arguments
   const { name, arguments: args = {} } = request.params;
 
-  // Get the organization from the args
-  const organization = args.organization as string;
-
-  // We need to use the organization string to create the client properly
-  const { getBoardClient } = await import('../../clients/board-client.js');
-  const boardClient = getBoardClient({ organizationId: organization });
+  // Ensure we have default values for organization and project
+  const argsWithDefaults = {
+    organization: defaultOrg,
+    project: defaultProject,
+    ...args,
+  };
 
   switch (name) {
     case 'list_boards': {
-      const parsedArgs = ListBoardsSchema.parse(args);
-      const result = await listBoards(boardClient, parsedArgs);
+      const parsedArgs = ListBoardsSchema.parse(argsWithDefaults);
+      const result = await listBoards(connection, parsedArgs);
       return {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
       };
     }
     case 'get_board': {
-      const parsedArgs = GetBoardSchema.parse(args);
-      const result = await getBoard(boardClient, parsedArgs);
+      const parsedArgs = GetBoardSchema.parse(argsWithDefaults);
+      const result = await getBoard(connection, parsedArgs);
       return {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
       };
     }
     case 'get_board_columns': {
-      const parsedArgs = GetBoardColumnsSchema.parse(args);
-      const result = await getBoardColumns(boardClient, parsedArgs);
+      const parsedArgs = GetBoardColumnsSchema.parse(argsWithDefaults);
+      const result = await getBoardColumns(connection, parsedArgs);
       return {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
       };
     }
     case 'get_board_work_items': {
-      const parsedArgs = GetBoardWorkItemsSchema.parse(args);
-      const result = await getBoardWorkItems(boardClient, parsedArgs);
+      const parsedArgs = GetBoardWorkItemsSchema.parse(argsWithDefaults);
+      const result = await getBoardWorkItems(connection, parsedArgs);
       return {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
       };
     }
     case 'create_board_row': {
-      const parsedArgs = CreateBoardRowSchema.parse(args);
-      const result = await createBoardRow(boardClient, parsedArgs);
+      const parsedArgs = CreateBoardRowSchema.parse(argsWithDefaults);
+      const result = await createBoardRow(connection, parsedArgs);
       return {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
       };
     }
     case 'update_board_row': {
-      const parsedArgs = UpdateBoardRowSchema.parse(args);
-      const result = await updateBoardRow(boardClient, parsedArgs);
+      const parsedArgs = UpdateBoardRowSchema.parse(argsWithDefaults);
+      const result = await updateBoardRow(connection, parsedArgs);
       return {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
       };
     }
     case 'delete_board_row': {
-      const parsedArgs = DeleteBoardRowSchema.parse(args);
-      await deleteBoardRow(boardClient, parsedArgs);
+      const parsedArgs = DeleteBoardRowSchema.parse(argsWithDefaults);
+      await deleteBoardRow(connection, parsedArgs);
       return {
         content: [
           {
@@ -121,8 +122,8 @@ export const handleBoardsRequest: RequestHandler = async (
       };
     }
     case 'move_work_item': {
-      const parsedArgs = MoveWorkItemSchema.parse(args);
-      const result = await moveWorkItem(boardClient, parsedArgs);
+      const parsedArgs = MoveWorkItemSchema.parse(argsWithDefaults);
+      const result = await moveWorkItem(connection, parsedArgs);
       return {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
       };
@@ -132,6 +133,6 @@ export const handleBoardsRequest: RequestHandler = async (
   }
 };
 
-export * from '@/features/boards/types';
-export * from '@/features/boards/schemas';
-export * from '@/features/boards/tool-definitions';
+export * from './types';
+export * from './schemas';
+export * from './tool-definitions';
