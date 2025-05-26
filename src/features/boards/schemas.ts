@@ -79,7 +79,9 @@ export const boardListParamsSchema = z.object({
 });
 
 export const boardParamsSchema = boardListParamsSchema.extend({
-  boardId: z.string().describe('The ID of the board'),
+  boardName: z
+    .string()
+    .describe('The name of the board (or ID for backward compatibility)'),
 });
 
 export const boardWorkItemsParamsSchema = boardParamsSchema.extend({

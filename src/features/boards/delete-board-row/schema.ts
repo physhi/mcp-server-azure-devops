@@ -20,7 +20,9 @@ export const DeleteBoardRowSchema = z.object({
     .string()
     .optional()
     .describe(`The team name or ID (Default: ${defaultTeam}).`),
-  boardId: z.string().describe('The ID of the board.'),
+  boardName: z
+    .string()
+    .describe('The name of the board (or ID for backward compatibility).'),
   rowId: z.string().describe('The ID of the row (swimlane) to delete.'),
 });
 

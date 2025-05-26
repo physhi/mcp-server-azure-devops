@@ -18,22 +18,22 @@ export const boardTools: ToolDefinition[] = [
   },
   {
     name: 'get_board',
-    description: 'Get details of a specific board',
+    description: 'Get details of a specific board by name',
     inputSchema: zodToJsonSchema(boardParamsSchema),
   },
   {
     name: 'get_board_columns',
-    description: 'Get columns for a specific board',
+    description: 'Get columns for a specific board by name',
     inputSchema: zodToJsonSchema(boardParamsSchema),
   },
   {
     name: 'get_board_work_items',
-    description: 'Get work items for a specific board',
+    description: 'Get work items for a specific board by name',
     inputSchema: zodToJsonSchema(boardWorkItemsParamsSchema),
   },
   {
     name: 'create_board_row',
-    description: 'Create a new swim lane (row) on a board',
+    description: 'Create a new swim lane (row) on a board by name',
     inputSchema: zodToJsonSchema(
       boardParamsSchema.extend({
         rowName: boardListParamsSchema.shape.team,
@@ -42,7 +42,7 @@ export const boardTools: ToolDefinition[] = [
   },
   {
     name: 'update_board_row',
-    description: 'Update the name of a swim lane (row) on a board',
+    description: 'Update the name of a swim lane (row) on a board by name',
     inputSchema: zodToJsonSchema(
       boardParamsSchema.extend({
         rowId: boardListParamsSchema.shape.team,
@@ -52,7 +52,7 @@ export const boardTools: ToolDefinition[] = [
   },
   {
     name: 'delete_board_row',
-    description: 'Delete a swim lane (row) from a board',
+    description: 'Delete a swim lane (row) from a board by name',
     inputSchema: zodToJsonSchema(
       boardParamsSchema.extend({
         rowId: boardListParamsSchema.shape.team,

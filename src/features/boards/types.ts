@@ -54,7 +54,7 @@ export interface BoardListParams {
 }
 
 export interface BoardParams extends BoardListParams {
-  boardId: string;
+  boardName: string;
 }
 
 export interface BoardWorkItemsParams extends BoardParams {

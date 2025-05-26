@@ -1,14 +1,14 @@
 import { WebApi } from 'azure-devops-node-api';
-import { TeamContext } from 'azure-devops-node-api/interfaces/CoreInterfaces';
 import { IterationDetails } from '../types';
 import { GetIterationDetailsArgs } from './schema';
 import {
   AzureDevOpsError,
   AzureDevOpsResourceNotFoundError,
 } from '../../../shared/errors';
+import { resolveIterationNameToId, createTeamContext } from '../utils';
 
 /**
- * Gets detailed information about a specific iteration.
+ * Gets detailed information about a specific iteration by name (or ID for backward compatibility).
  *
  * @param connection The Azure DevOps WebApi connection.
  * @param args The arguments for getting iteration details.
@@ -23,20 +23,21 @@ export async function getIterationDetails(
     const workApi = await connection.getWorkApi();
 
     // Create a team context for the API call
-    const teamContext: TeamContext = {
-      project: args.project,
-      team: args.team,
-    };
+    const teamContext = createTeamContext(args.project || '', args.team);
+
+    // Resolve iteration name to ID
+    const iterationId = await resolveIterationNameToId(
+      connection,
+      teamContext,
+      args.iterationName,
+    );
 
     // Get the specific iteration by ID
-    const iteration = await workApi.getTeamIteration(
-      teamContext,
-      args.iterationId,
-    );
+    const iteration = await workApi.getTeamIteration(teamContext, iterationId);
 
     if (!iteration) {
       throw new AzureDevOpsResourceNotFoundError(
-        `Iteration not found: ${args.iterationId}`,
+        `Iteration not found: ${args.iterationName}`,
       );
     }
 
@@ -55,7 +56,7 @@ export async function getIterationDetails(
         // Get work items for the iteration
         const workItems = await workApi.getIterationWorkItems(
           teamContext,
-          args.iterationId,
+          iterationId,
         );
 
         // Calculate work item statistics
@@ -114,7 +115,7 @@ export async function getIterationDetails(
         error.message.includes('does not exist')
       ) {
         throw new AzureDevOpsResourceNotFoundError(
-          `Project, team, or iteration not found: ${args.project}/${args.team}/${args.iterationId}`,
+          `Project, team, or iteration not found: ${args.project}/${args.team}/${args.iterationName}`,
         );
       }
     }

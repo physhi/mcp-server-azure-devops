@@ -1,14 +1,14 @@
 import { WebApi } from 'azure-devops-node-api';
-import { TeamContext } from 'azure-devops-node-api/interfaces/CoreInterfaces';
 import { SprintBurndown, BurndownDataPoint } from '../types';
 import { GetSprintBurndownArgs } from './schema';
 import {
   AzureDevOpsError,
   AzureDevOpsResourceNotFoundError,
 } from '../../../shared/errors';
+import { resolveIterationNameToId, createTeamContext } from '../utils';
 
 /**
- * Gets burndown chart data for a specific sprint/iteration.
+ * Gets burndown chart data for a specific sprint/iteration by name (or ID for backward compatibility).
  *
  * @param connection The Azure DevOps WebApi connection.
  * @param args The arguments for getting sprint burndown data.
@@ -24,32 +24,33 @@ export async function getSprintBurndown(
     const witApi = await connection.getWorkItemTrackingApi();
 
     // Create a team context for the API call
-    const teamContext: TeamContext = {
-      project: args.project,
-      team: args.team,
-    };
+    const teamContext = createTeamContext(args.project || '', args.team);
+
+    // Resolve iteration name to ID
+    const iterationId = await resolveIterationNameToId(
+      connection,
+      teamContext,
+      args.iterationName,
+    );
 
     // Get the specific iteration details
-    const iteration = await workApi.getTeamIteration(
-      teamContext,
-      args.iterationId,
-    );
+    const iteration = await workApi.getTeamIteration(teamContext, iterationId);
 
     if (!iteration) {
       throw new AzureDevOpsResourceNotFoundError(
-        `Iteration not found: ${args.iterationId}`,
+        `Iteration not found: ${args.iterationName}`,
       );
     }
 
     // Get work items for the iteration
     const iterationWorkItems = await workApi.getIterationWorkItems(
       teamContext,
-      args.iterationId,
+      iterationId,
     );
 
     if (!iterationWorkItems || !iterationWorkItems.workItemRelations) {
       return {
-        iterationId: args.iterationId,
+        iterationId: iterationId,
         iterationName: iteration.name || 'Unknown',
         startDate: iteration.attributes?.startDate?.toISOString() || '',
         endDate: iteration.attributes?.finishDate?.toISOString() || '',
@@ -69,7 +70,7 @@ export async function getSprintBurndown(
 
     if (workItemIds.length === 0) {
       return {
-        iterationId: args.iterationId,
+        iterationId: iterationId,
         iterationName: iteration.name || 'Unknown',
         startDate: iteration.attributes?.startDate?.toISOString() || '',
         endDate: iteration.attributes?.finishDate?.toISOString() || '',
@@ -117,7 +118,7 @@ export async function getSprintBurndown(
     if (!iterationStartDate || !iterationEndDate) {
       // If we don't have valid dates, return basic data without burndown chart
       return {
-        iterationId: args.iterationId,
+        iterationId: iterationId,
         iterationName: iteration.name || 'Unknown',
         startDate: iterationStartDate?.toISOString() || '',
         endDate: iterationEndDate?.toISOString() || '',
@@ -185,7 +186,7 @@ export async function getSprintBurndown(
     }
 
     return {
-      iterationId: args.iterationId,
+      iterationId: iterationId,
       iterationName: iteration.name || 'Unknown',
       startDate: iterationStartDate.toISOString(),
       endDate: iterationEndDate.toISOString(),

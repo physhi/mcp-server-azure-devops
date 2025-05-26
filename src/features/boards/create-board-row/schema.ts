@@ -20,7 +20,9 @@ export const CreateBoardRowSchema = z.object({
     .string()
     .optional()
     .describe(`The team name or ID (Default: ${defaultTeam}).`),
-  boardId: z.string().describe('The ID of the board.'),
+  boardName: z
+    .string()
+    .describe('The name of the board (or ID for backward compatibility).'),
   rowName: z.string().describe('The name for the new row (swimlane).'),
 });
 

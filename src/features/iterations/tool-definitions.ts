@@ -19,7 +19,7 @@ export const iterationTools: ToolDefinition[] = [
   },
   {
     name: 'get_iteration_details',
-    description: 'Get comprehensive details about a specific iteration',
+    description: 'Get comprehensive details about a specific iteration by name',
     inputSchema: zodToJsonSchema(iterationDetailsParamsSchema),
   },
   {
@@ -29,7 +29,7 @@ export const iterationTools: ToolDefinition[] = [
   },
   {
     name: 'get_sprint_burndown',
-    description: 'Get burndown chart data for a sprint',
+    description: 'Get burndown chart data for a sprint by name',
     inputSchema: zodToJsonSchema(sprintBurndownParamsSchema),
   },
   {

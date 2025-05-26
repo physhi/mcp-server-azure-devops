@@ -20,15 +20,15 @@ export function identifyRequest(request: IncomingMessage): unknown | null {
   const match = url.pathname.match(BOARD_PATH_REGEX);
   if (!match) return null;
 
-  const [, organization, project, team, boardId, subPath] = match;
+  const [, organization, project, team, boardNameOrId, subPath] = match;
   const params = { organization, project, team };
 
   // Handle different board endpoints
-  if (boardId) {
+  if (boardNameOrId) {
     if (subPath === 'workitems') {
       const result = boardWorkItemsParamsSchema.safeParse({
         ...params,
-        boardId,
+        boardName: boardNameOrId,
         ...(url.searchParams.get('iterationId') && {
           iterationId: url.searchParams.get('iterationId'),
         }),
@@ -38,10 +38,16 @@ export function identifyRequest(request: IncomingMessage): unknown | null {
       });
       return result.success ? result.data : null;
     } else if (subPath === 'columns') {
-      const result = boardParamsSchema.safeParse({ ...params, boardId });
+      const result = boardParamsSchema.safeParse({
+        ...params,
+        boardName: boardNameOrId,
+      });
       return result.success ? { ...result.data, subPath: 'columns' } : null;
     } else {
-      const result = boardParamsSchema.safeParse({ ...params, boardId });
+      const result = boardParamsSchema.safeParse({
+        ...params,
+        boardName: boardNameOrId,
+      });
       return result.success ? result.data : null;
     }
   }

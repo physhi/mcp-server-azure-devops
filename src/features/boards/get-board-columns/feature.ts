@@ -1,14 +1,14 @@
 import { WebApi } from 'azure-devops-node-api';
-import { TeamContext } from 'azure-devops-node-api/interfaces/CoreInterfaces';
 import { BoardColumn } from '../types';
 import { GetBoardColumnsArgs } from './schema';
 import {
   AzureDevOpsError,
   AzureDevOpsResourceNotFoundError,
 } from '../../../shared/errors';
+import { resolveBoardNameToId, createTeamContext } from '../utils';
 
 /**
- * Gets the columns of a specific board.
+ * Gets the columns of a specific board by name (or ID for backward compatibility).
  *
  * @param connection The Azure DevOps WebApi connection.
  * @param args The arguments for getting the board columns.
@@ -23,17 +23,21 @@ export async function getBoardColumns(
     const workApi = await connection.getWorkApi();
 
     // Create a team context for the API call
-    const teamContext: TeamContext = {
-      project: args.project,
-      team: args.team,
-    };
+    const teamContext = createTeamContext(args.project, args.team);
+
+    // Resolve board name to ID
+    const boardId = await resolveBoardNameToId(
+      connection,
+      teamContext,
+      args.boardName,
+    );
 
     // Get the board details which include columns
-    const board = await workApi.getBoard(teamContext, args.boardId);
+    const board = await workApi.getBoard(teamContext, boardId);
 
     if (!board || !board.columns) {
       throw new AzureDevOpsResourceNotFoundError(
-        `Columns not found for board ${args.boardId}`,
+        `Columns not found for board ${args.boardName}`,
       );
     }
 
@@ -50,7 +54,7 @@ export async function getBoardColumns(
         error.message.includes('does not exist')
       ) {
         throw new AzureDevOpsResourceNotFoundError(
-          `Board not found: ${args.boardId} in project/team ${args.project}/${args.team}`,
+          `Board not found: ${args.boardName} in project/team ${args.project}/${args.team}`,
         );
       }
     }

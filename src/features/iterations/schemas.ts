@@ -46,9 +46,11 @@ export const iterationListParamsSchema = baseIterationParamsSchema
  * Schema for getting iteration details
  */
 export const iterationDetailsParamsSchema = baseIterationParamsSchema.extend({
-  iterationId: z
+  iterationName: z
     .string()
-    .describe('The ID of the iteration to get details for'),
+    .describe(
+      'The name of the iteration to get details for (or ID for backward compatibility)',
+    ),
   includeWorkItems: z
     .boolean()
     .optional()
@@ -72,9 +74,11 @@ export const teamCurrentIterationParamsSchema =
  * Schema for getting sprint burndown data
  */
 export const sprintBurndownParamsSchema = baseIterationParamsSchema.extend({
-  iterationId: z
+  iterationName: z
     .string()
-    .describe('The ID of the iteration to get burndown data for'),
+    .describe(
+      'The name of the iteration to get burndown data for (or ID for backward compatibility)',
+    ),
   includeIdealLine: z
     .boolean()
     .optional()

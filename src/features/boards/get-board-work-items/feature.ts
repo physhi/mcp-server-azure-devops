@@ -7,9 +7,10 @@ import {
 } from '../../../shared/errors';
 import axios from 'axios';
 import { getAuthorizationHeader } from '../../../clients/azure-devops';
+import { resolveBoardNameToId, createTeamContext } from '../utils';
 
 /**
- * Gets work items for a specific board, optionally filtered by iteration.
+ * Gets work items for a specific board by name (or ID for backward compatibility), optionally filtered by iteration.
  *
  * @param connection The Azure DevOps WebApi connection.
  * @param args The arguments for getting board work items.
@@ -20,6 +21,14 @@ export async function getBoardWorkItems(
   args: GetBoardWorkItemsArgs,
 ): Promise<BoardWorkItemsResult> {
   try {
+    // Resolve board name to ID
+    const teamContext = createTeamContext(args.project, args.team);
+    const boardId = await resolveBoardNameToId(
+      connection,
+      teamContext,
+      args.boardName,
+    );
+
     // Since the Azure DevOps Node API doesn't have a direct method for board work items,
     // we need to make a direct REST API call
 
@@ -30,7 +39,7 @@ export async function getBoardWorkItems(
     }
 
     // Construct the API URL for board work items
-    let url = `${baseUrl}/${args.project}/${args.team}/_apis/work/boards/${args.boardId}/workitems?api-version=7.1`;
+    let url = `${baseUrl}/${args.project}/${args.team}/_apis/work/boards/${boardId}/workitems?api-version=7.1`;
 
     // Add optional query parameters
     if (args.iterationId) {
@@ -60,7 +69,7 @@ export async function getBoardWorkItems(
         error.message.includes('does not exist')
       ) {
         throw new AzureDevOpsResourceNotFoundError(
-          `Board or work items not found: ${args.boardId} in project/team ${args.project}/${args.team}`,
+          `Board or work items not found: ${args.boardName} in project/team ${args.project}/${args.team}`,
         );
       }
     }
