@@ -208,7 +208,7 @@ export async function getSprintBurndown(
         error.message.includes('does not exist')
       ) {
         throw new AzureDevOpsResourceNotFoundError(
-          `Project, team, or iteration not found: ${args.project}/${args.team}/${args.iterationId}`,
+          `Project, team, or iteration not found: ${args.project}/${args.team}/${args.iterationName}`,
         );
       }
     }

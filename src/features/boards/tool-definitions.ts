@@ -28,7 +28,8 @@ export const boardTools: ToolDefinition[] = [
   },
   {
     name: 'get_board_work_items',
-    description: 'Get work items for a specific board by name',
+    description:
+      'Get work items for a specific board by name, optionally filtered by iteration name',
     inputSchema: zodToJsonSchema(boardWorkItemsParamsSchema),
   },
   {

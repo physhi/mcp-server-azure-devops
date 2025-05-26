@@ -85,10 +85,12 @@ export const boardParamsSchema = boardListParamsSchema.extend({
 });
 
 export const boardWorkItemsParamsSchema = boardParamsSchema.extend({
-  iterationId: z
+  iterationName: z
     .string()
     .optional()
-    .describe('Optional. The ID of the iteration to filter work items'),
+    .describe(
+      'Optional. The name of the iteration to filter work items (or ID for backward compatibility)',
+    ),
   iterationPath: z
     .string()
     .optional()

@@ -30,7 +30,7 @@ export function identifyRequest(request: IncomingMessage): unknown | null {
         ...params,
         boardName: boardNameOrId,
         ...(url.searchParams.get('iterationId') && {
-          iterationId: url.searchParams.get('iterationId'),
+          iterationName: url.searchParams.get('iterationId'),
         }),
         ...(url.searchParams.get('iterationPath') && {
           iterationPath: url.searchParams.get('iterationPath'),

@@ -58,6 +58,6 @@ export interface BoardParams extends BoardListParams {
 }
 
 export interface BoardWorkItemsParams extends BoardParams {
-  iterationId?: string;
+  iterationName?: string;
   iterationPath?: string;
 }
