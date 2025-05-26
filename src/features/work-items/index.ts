@@ -5,9 +5,12 @@ export * from './types';
 // Re-export features
 export * from './list-work-items';
 export * from './get-work-item';
+export * from './get-work-item-details';
+export * from './get-work-items-by-iteration';
 export * from './create-work-item';
 export * from './update-work-item';
 export * from './manage-work-item-link';
+export * from './get-work-item-history';
 
 // Export tool definitions
 export * from './tool-definitions';
@@ -23,11 +26,17 @@ import { defaultProject } from '../../utils/environment';
 import {
   ListWorkItemsSchema,
   GetWorkItemSchema,
+  GetWorkItemDetailsSchema,
+  GetWorkItemsByIterationSchema,
+  GetWorkItemHistorySchema,
   CreateWorkItemSchema,
   UpdateWorkItemSchema,
   ManageWorkItemLinkSchema,
   listWorkItems,
   getWorkItem,
+  getWorkItemDetails,
+  getWorkItemsByIteration,
+  getWorkItemHistory,
   createWorkItem,
   updateWorkItem,
   manageWorkItemLink,
@@ -47,6 +56,9 @@ export const isWorkItemsRequest: RequestIdentifier = (
   const toolName = request.params.name;
   return [
     'get_work_item',
+    'get_work_item_details',
+    'get_work_items_by_iteration',
+    'get_work_item_history',
     'list_work_items',
     'create_work_item',
     'update_work_item',
@@ -69,6 +81,22 @@ export const handleWorkItemsRequest: RequestHandler = async (
         args.workItemId,
         args.expand,
       );
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+      };
+    }
+    case 'get_work_item_details': {
+      const args = GetWorkItemDetailsSchema.parse(request.params.arguments);
+      const result = await getWorkItemDetails(connection, args);
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+      };
+    }
+    case 'get_work_items_by_iteration': {
+      const args = GetWorkItemsByIterationSchema.parse(
+        request.params.arguments,
+      );
+      const result = await getWorkItemsByIteration(connection, args);
       return {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
       };
@@ -138,6 +166,13 @@ export const handleWorkItemsRequest: RequestHandler = async (
           comment: args.comment,
         },
       );
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+      };
+    }
+    case 'get_work_item_history': {
+      const args = GetWorkItemHistorySchema.parse(request.params.arguments);
+      const result = await getWorkItemHistory(connection, args);
       return {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
       };

@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { defaultProject, defaultOrg } from '../../utils/environment';
+import {
+  defaultProject,
+  defaultOrg,
+  defaultRepository,
+} from '../../utils/environment';
 
 /**
  * Schema for getting a repository
@@ -13,7 +17,12 @@ export const GetRepositorySchema = z.object({
     .string()
     .optional()
     .describe(`The ID or name of the organization (Default: ${defaultOrg})`),
-  repositoryId: z.string().describe('The ID or name of the repository'),
+  repositoryId: z
+    .string()
+    .optional()
+    .describe(
+      `The ID or name of the repository (Default: ${defaultRepository})`,
+    ),
 });
 
 /**
@@ -28,7 +37,12 @@ export const GetRepositoryDetailsSchema = z.object({
     .string()
     .optional()
     .describe(`The ID or name of the organization (Default: ${defaultOrg})`),
-  repositoryId: z.string().describe('The ID or name of the repository'),
+  repositoryId: z
+    .string()
+    .optional()
+    .describe(
+      `The ID or name of the repository (Default: ${defaultRepository})`,
+    ),
   includeStatistics: z
     .boolean()
     .optional()
@@ -81,7 +95,12 @@ export const GetFileContentSchema = z.object({
     .string()
     .optional()
     .describe(`The ID or name of the organization (Default: ${defaultOrg})`),
-  repositoryId: z.string().describe('The ID or name of the repository'),
+  repositoryId: z
+    .string()
+    .optional()
+    .describe(
+      `The ID or name of the repository (Default: ${defaultRepository})`,
+    ),
   path: z
     .string()
     .optional()

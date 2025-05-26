@@ -20,7 +20,11 @@ import {
   RequestIdentifier,
   RequestHandler,
 } from '../../shared/types/request-handler';
-import { defaultProject, defaultOrg } from '../../utils/environment';
+import {
+  defaultProject,
+  defaultOrg,
+  defaultRepository,
+} from '../../utils/environment';
 import {
   GetRepositorySchema,
   GetRepositoryDetailsSchema,
@@ -64,7 +68,7 @@ export const handleRepositoriesRequest: RequestHandler = async (
       const result = await getRepository(
         connection,
         args.projectId ?? defaultProject,
-        args.repositoryId,
+        args.repositoryId ?? defaultRepository,
       );
       return {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -74,7 +78,7 @@ export const handleRepositoriesRequest: RequestHandler = async (
       const args = GetRepositoryDetailsSchema.parse(request.params.arguments);
       const result = await getRepositoryDetails(connection, {
         projectId: args.projectId ?? defaultProject,
-        repositoryId: args.repositoryId,
+        repositoryId: args.repositoryId ?? defaultRepository,
         includeStatistics: args.includeStatistics,
         includeRefs: args.includeRefs,
         refFilter: args.refFilter,
@@ -112,7 +116,7 @@ export const handleRepositoriesRequest: RequestHandler = async (
       const result = await getFileContent(
         connection,
         args.projectId ?? defaultProject,
-        args.repositoryId,
+        args.repositoryId ?? defaultRepository,
         args.path,
         versionTypeEnum !== undefined && args.version
           ? { versionType: versionTypeEnum, version: args.version }

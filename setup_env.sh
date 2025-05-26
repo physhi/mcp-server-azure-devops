@@ -246,8 +246,118 @@ if [[ "$set_default_project" = "y" || "$set_default_project" = "Y" ]]; then
     fi
 fi
 
+# Get Default Team (Optional)
+echo -e "\n${YELLOW}Step 4: Would you like to set a default team? (y/n)${NC}"
+read -p "Select option: " set_default_team
+
+default_team=""
+if [[ "$set_default_team" = "y" || "$set_default_team" = "Y" ]]; then
+    if [ ! -z "$default_project" ]; then
+        # List teams for the selected project
+        echo "Fetching teams from project $default_project..."
+        teams=$(az devops team list --project "$default_project" --query "value[].name" -o tsv 2>/dev/null)
+        
+        if [ $? -ne 0 ] || [ -z "$teams" ]; then
+            echo -e "${YELLOW}No teams found or unable to list teams.${NC}"
+            read -p "Enter a default team name (leave blank to skip): " default_team
+        else
+            # Display teams for selection
+            echo -e "\nAvailable teams in $default_project:"
+            OLDIFS=$IFS
+            IFS=$'\n'
+            # Create array in a shell-agnostic way
+            teams_array=()
+            while IFS= read -r line; do
+                [ -n "$line" ] && teams_array+=("$line")
+            done <<< "$teams"
+            IFS=$OLDIFS
+            
+            # Check if array is empty
+            if [ ${#teams_array[@]} -eq 0 ]; then
+                echo -e "${YELLOW}Failed to parse teams list.${NC}"
+                read -p "Enter a default team name (leave blank to skip): " default_team
+            else
+                # Display teams with explicit indexing
+                for ((idx=0; idx<${#teams_array[@]}; idx++)); do
+                    echo "$((idx+1)) ${teams_array[$idx]}"
+                done
+                
+                echo "$((${#teams_array[@]}+1)) Skip setting a default team"
+                
+                # Prompt for selection
+                read -p "Select a default team (1-$((${#teams_array[@]}+1))): " team_selection
+                
+                if [[ "$team_selection" =~ ^[0-9]+$ ]] && [ "$team_selection" -ge 1 ] && [ "$team_selection" -lt "$((${#teams_array[@]}+1))" ]; then
+                    default_team=${teams_array[$((team_selection-1))]}
+                    echo -e "${GREEN}Using default team: $default_team${NC}"
+                else
+                    echo "No default team selected."
+                fi
+            fi
+        fi
+    else
+        echo -e "${YELLOW}Default project not set. Please set a default project first to list teams.${NC}"
+        read -p "Enter a default team name (leave blank to skip): " default_team
+    fi
+fi
+
+# Get Default Repository (Optional)
+echo -e "\n${YELLOW}Step 5: Would you like to set a default repository? (y/n)${NC}"
+read -p "Select option: " set_default_repository
+
+default_repository=""
+if [[ "$set_default_repository" = "y" || "$set_default_repository" = "Y" ]]; then
+    if [ ! -z "$default_project" ]; then
+        # List repositories for the selected project
+        echo "Fetching repositories from project $default_project..."
+        repositories=$(az repos list --project "$default_project" --query "[].name" -o tsv 2>/dev/null)
+        
+        if [ $? -ne 0 ] || [ -z "$repositories" ]; then
+            echo -e "${YELLOW}No repositories found or unable to list repositories.${NC}"
+            read -p "Enter a default repository name (leave blank to skip): " default_repository
+        else
+            # Display repositories for selection
+            echo -e "\nAvailable repositories in $default_project:"
+            OLDIFS=$IFS
+            IFS=$'\n'
+            # Create array in a shell-agnostic way
+            repositories_array=()
+            while IFS= read -r line; do
+                [ -n "$line" ] && repositories_array+=("$line")
+            done <<< "$repositories"
+            IFS=$OLDIFS
+            
+            # Check if array is empty
+            if [ ${#repositories_array[@]} -eq 0 ]; then
+                echo -e "${YELLOW}Failed to parse repositories list.${NC}"
+                read -p "Enter a default repository name (leave blank to skip): " default_repository
+            else
+                # Display repositories with explicit indexing
+                for ((idx=0; idx<${#repositories_array[@]}; idx++)); do
+                    echo "$((idx+1)) ${repositories_array[$idx]}"
+                done
+                
+                echo "$((${#repositories_array[@]}+1)) Skip setting a default repository"
+                
+                # Prompt for selection
+                read -p "Select a default repository (1-$((${#repositories_array[@]}+1))): " repository_selection
+                
+                if [[ "$repository_selection" =~ ^[0-9]+$ ]] && [ "$repository_selection" -ge 1 ] && [ "$repository_selection" -lt "$((${#repositories_array[@]}+1))" ]; then
+                    default_repository=${repositories_array[$((repository_selection-1))]}
+                    echo -e "${GREEN}Using default repository: $default_repository${NC}"
+                else
+                    echo "No default repository selected."
+                fi
+            fi
+        fi
+    else
+        echo -e "${YELLOW}Default project not set. Please set a default project first to list repositories.${NC}"
+        read -p "Enter a default repository name (leave blank to skip): " default_repository
+    fi
+fi
+
 # Create .env file
-echo -e "\n${YELLOW}Step 5: Creating .env file...${NC}"
+echo -e "\n${YELLOW}Step 6: Creating .env file...${NC}"
 
 cat > .env << EOF
 # Azure DevOps MCP Server - Environment Variables
@@ -277,6 +387,36 @@ cat >> .env << EOF
 EOF
 fi
 
+# Add default team if specified
+if [ ! -z "$default_team" ]; then
+cat >> .env << EOF
+
+# Default Team to use when not specified
+AZURE_DEVOPS_DEFAULT_TEAM=$default_team
+EOF
+else
+cat >> .env << EOF
+
+# Default Team to use when not specified (optional)
+# AZURE_DEVOPS_DEFAULT_TEAM=your-default-team
+EOF
+fi
+
+# Add default repository if specified
+if [ ! -z "$default_repository" ]; then
+cat >> .env << EOF
+
+# Default Repository to use when not specified
+AZURE_DEVOPS_DEFAULT_REPOSITORY=$default_repository
+EOF
+else
+cat >> .env << EOF
+
+# Default Repository to use when not specified (optional)
+# AZURE_DEVOPS_DEFAULT_REPOSITORY=your-default-repository
+EOF
+fi
+
 # Add remaining configuration
 cat >> .env << EOF
 
@@ -297,6 +437,12 @@ echo "- Organization: $org_name"
 echo "- Organization URL: $org_url"
 if [ ! -z "$default_project" ]; then
     echo "- Default Project: $default_project"
+fi
+if [ ! -z "$default_team" ]; then
+    echo "- Default Team: $default_team"
+fi
+if [ ! -z "$default_repository" ]; then
+    echo "- Default Repository: $default_repository"
 fi
 echo "- PAT: Created with expanded scopes for full integration"
 echo

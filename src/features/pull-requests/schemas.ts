@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { defaultProject, defaultOrg } from '../../utils/environment';
+import {
+  defaultProject,
+  defaultOrg,
+  defaultRepository,
+} from '../../utils/environment';
 
 /**
  * Schema for creating a pull request
@@ -13,7 +17,12 @@ export const CreatePullRequestSchema = z.object({
     .string()
     .optional()
     .describe(`The ID or name of the organization (Default: ${defaultOrg})`),
-  repositoryId: z.string().describe('The ID or name of the repository'),
+  repositoryId: z
+    .string()
+    .optional()
+    .describe(
+      `The ID or name of the repository (Default: ${defaultRepository})`,
+    ),
   title: z.string().describe('The title of the pull request'),
   description: z
     .string()
@@ -55,7 +64,12 @@ export const ListPullRequestsSchema = z.object({
     .string()
     .optional()
     .describe(`The ID or name of the organization (Default: ${defaultOrg})`),
-  repositoryId: z.string().describe('The ID or name of the repository'),
+  repositoryId: z
+    .string()
+    .optional()
+    .describe(
+      `The ID or name of the repository (Default: ${defaultRepository})`,
+    ),
   status: z
     .enum(['all', 'active', 'completed', 'abandoned'])
     .optional()
@@ -94,7 +108,12 @@ export const GetPullRequestCommentsSchema = z.object({
     .string()
     .optional()
     .describe(`The ID or name of the organization (Default: ${defaultOrg})`),
-  repositoryId: z.string().describe('The ID or name of the repository'),
+  repositoryId: z
+    .string()
+    .optional()
+    .describe(
+      `The ID or name of the repository (Default: ${defaultRepository})`,
+    ),
   pullRequestId: z.number().describe('The ID of the pull request'),
   threadId: z
     .number()
@@ -123,7 +142,12 @@ export const AddPullRequestCommentSchema = z
       .string()
       .optional()
       .describe(`The ID or name of the organization (Default: ${defaultOrg})`),
-    repositoryId: z.string().describe('The ID or name of the repository'),
+    repositoryId: z
+      .string()
+      .optional()
+      .describe(
+        `The ID or name of the repository (Default: ${defaultRepository})`,
+      ),
     pullRequestId: z.number().describe('The ID of the pull request'),
     content: z.string().describe('The content of the comment in markdown'),
     threadId: z
@@ -172,7 +196,12 @@ export const UpdatePullRequestSchema = z.object({
     .string()
     .optional()
     .describe(`The ID or name of the organization (Default: ${defaultOrg})`),
-  repositoryId: z.string().describe('The ID or name of the repository'),
+  repositoryId: z
+    .string()
+    .optional()
+    .describe(
+      `The ID or name of the repository (Default: ${defaultRepository})`,
+    ),
   pullRequestId: z.number().describe('The ID of the pull request to update'),
   title: z
     .string()

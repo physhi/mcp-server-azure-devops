@@ -16,7 +16,7 @@ import {
   RequestIdentifier,
   RequestHandler,
 } from '../../shared/types/request-handler';
-import { defaultProject } from '../../utils/environment';
+import { defaultProject, defaultRepository } from '../../utils/environment';
 import {
   CreatePullRequestSchema,
   ListPullRequestsSchema,
@@ -59,7 +59,7 @@ export const handlePullRequestsRequest: RequestHandler = async (
       const result = await createPullRequest(
         connection,
         args.projectId ?? defaultProject,
-        args.repositoryId,
+        args.repositoryId ?? defaultRepository,
         args,
       );
       return {
@@ -71,10 +71,10 @@ export const handlePullRequestsRequest: RequestHandler = async (
       const result = await listPullRequests(
         connection,
         params.projectId ?? defaultProject,
-        params.repositoryId,
+        params.repositoryId ?? defaultRepository,
         {
           projectId: params.projectId ?? defaultProject,
-          repositoryId: params.repositoryId,
+          repositoryId: params.repositoryId ?? defaultRepository,
           status: params.status,
           creatorId: params.creatorId,
           reviewerId: params.reviewerId,
@@ -95,11 +95,11 @@ export const handlePullRequestsRequest: RequestHandler = async (
       const result = await getPullRequestComments(
         connection,
         params.projectId ?? defaultProject,
-        params.repositoryId,
+        params.repositoryId ?? defaultRepository,
         params.pullRequestId,
         {
           projectId: params.projectId ?? defaultProject,
-          repositoryId: params.repositoryId,
+          repositoryId: params.repositoryId ?? defaultRepository,
           pullRequestId: params.pullRequestId,
           threadId: params.threadId,
           includeDeleted: params.includeDeleted,
@@ -117,11 +117,11 @@ export const handlePullRequestsRequest: RequestHandler = async (
       const result = await addPullRequestComment(
         connection,
         params.projectId ?? defaultProject,
-        params.repositoryId,
+        params.repositoryId ?? defaultRepository,
         params.pullRequestId,
         {
           projectId: params.projectId ?? defaultProject,
-          repositoryId: params.repositoryId,
+          repositoryId: params.repositoryId ?? defaultRepository,
           pullRequestId: params.pullRequestId,
           content: params.content,
           threadId: params.threadId,
@@ -140,6 +140,7 @@ export const handlePullRequestsRequest: RequestHandler = async (
       const fixedParams = {
         ...params,
         projectId: params.projectId ?? defaultProject,
+        repositoryId: params.repositoryId ?? defaultRepository,
       };
       const result = await updatePullRequest(fixedParams);
       return {

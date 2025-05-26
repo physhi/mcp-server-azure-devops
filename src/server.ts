@@ -85,6 +85,12 @@ import {
   handleTeamsRequest,
 } from './features/teams';
 
+import {
+  iterationTools,
+  isIterationsRequest,
+  handleIterationsRequest,
+} from './features/iterations';
+
 // Create a safe console logging function that won't interfere with MCP protocol
 function safeLog(message: string) {
   process.stderr.write(`${message}\n`);
@@ -134,6 +140,7 @@ export function createAzureDevOpsServer(config: AzureDevOpsConfig): Server {
       ...wikisTools,
       ...boardTools,
       ...teamsTools,
+      ...iterationTools,
     ];
     return { tools };
   });
@@ -350,6 +357,10 @@ export function createAzureDevOpsServer(config: AzureDevOpsConfig): Server {
 
       if (isTeamsRequest(request)) {
         return await handleTeamsRequest(connection, request);
+      }
+
+      if (isIterationsRequest(request)) {
+        return await handleIterationsRequest(connection, request);
       }
 
       // If we get here, the tool is not recognized by any feature handler

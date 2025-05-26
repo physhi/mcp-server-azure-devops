@@ -25,3 +25,15 @@ export const defaultProject =
  * Default organization name derived from the organization URL
  */
 export const defaultOrg = getOrgNameFromUrl(process.env.AZURE_DEVOPS_ORG_URL);
+
+/**
+ * Default team name from environment variables
+ */
+export const defaultTeam =
+  process.env.AZURE_DEVOPS_DEFAULT_TEAM || 'no default team';
+
+/**
+ * Default repository name from environment variables
+ */
+export const defaultRepository =
+  process.env.AZURE_DEVOPS_DEFAULT_REPOSITORY || 'no default repository';

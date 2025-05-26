@@ -6,7 +6,11 @@ import {
   BoardRow,
   BoardWorkItemsResult,
 } from '@/features/boards/types';
-import { defaultProject, defaultOrg } from '../../utils/environment';
+import {
+  defaultProject,
+  defaultOrg,
+  defaultTeam,
+} from '../../utils/environment';
 
 // Common schemas
 export const fieldReferenceSchema = z.object({
@@ -68,7 +72,10 @@ export const boardListParamsSchema = z.object({
   project: z
     .string()
     .describe(`The ID or name of the project (Default: ${defaultProject})`),
-  team: z.string().describe('The ID or name of the team'),
+  team: z
+    .string()
+    .optional()
+    .describe(`The ID or name of the team (Default: ${defaultTeam})`),
 });
 
 export const boardParamsSchema = boardListParamsSchema.extend({
